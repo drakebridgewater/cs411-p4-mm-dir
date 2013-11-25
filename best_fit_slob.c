@@ -540,39 +540,6 @@ out:
 #define ARCH_SLAB_MINALIGN __alignof__(unsigned long)
 #endif
 
-
-void *__kmalloc_node(size_t size, gfp_t gfp, int node)
-{
-        unsigned int *m;
-        int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
-
-
-        if (size < PAGE_SIZE - align) {
-                if (!size)
-                        return ZERO_SIZE_PTR;
-
-
-                m = slob_alloc(size + align, gfp, align, node);
-                if (!m)
-                        return NULL;
-                *m = size;
-                return (void *)m + align;
-        } else {
-                void *ret;
-
-
-                ret = slob_new_page(gfp | __GFP_COMP, get_order(size), node);
-                if (ret) {
-                        struct page *page;
-                        page = virt_to_page(ret);
-                        page->private = size;
-                }
-                return ret;
-        }
-}
-EXPORT_SYMBOL(__kmalloc_node);
-
-
 void kfree(const void *block)
 {
         struct slob_page *sp;
@@ -612,7 +579,7 @@ size_t ksize(const void *block)
 }
 EXPORT_SYMBOL(ksize);
 
-
+/*
 struct kmem_cache {
         unsigned int size, align;
         unsigned long flags;
@@ -635,12 +602,12 @@ struct kmem_cache *kmem_cache_create(const char *name, size_t size,
                 c->name = name;
                 c->size = size;
                 if (flags & SLAB_DESTROY_BY_RCU) {
-                        /* leave room for rcu footer at the end of object */
+                        /* leave room for rcu footer at the end of object 
                         c->size += sizeof(struct slob_rcu);
                 }
                 c->flags = flags;
                 c->ctor = ctor;
-                /* ignore alignment unless it's forced */
+                /* ignore alignment unless it's forced 
                 c->align = (flags & SLAB_HWCACHE_ALIGN) ? SLOB_ALIGN : 0;
                 if (c->align < ARCH_SLAB_MINALIGN)
                         c->align = ARCH_SLAB_MINALIGN;
@@ -653,15 +620,14 @@ struct kmem_cache *kmem_cache_create(const char *name, size_t size,
         return c;
 }
 EXPORT_SYMBOL(kmem_cache_create);
-
-
+*/
 void kmem_cache_destroy(struct kmem_cache *c)
 {
         slob_free(c, sizeof(struct kmem_cache));
 }
 EXPORT_SYMBOL(kmem_cache_destroy);
 
-
+/*
 void *kmem_cache_alloc_node(struct kmem_cache *c, gfp_t flags, int node)
 {
         void *b;
@@ -680,8 +646,8 @@ void *kmem_cache_alloc_node(struct kmem_cache *c, gfp_t flags, int node)
         return b;
 }
 EXPORT_SYMBOL(kmem_cache_alloc_node);
-
-
+*/
+/*
 static void __kmem_cache_free(void *b, int size)
 {
         if (size < PAGE_SIZE)
@@ -690,7 +656,10 @@ static void __kmem_cache_free(void *b, int size)
                 free_pages((unsigned long)b, get_order(size));
 }
 
+*
+*/
 
+/*
 static void kmem_rcu_free(struct rcu_head *head)
 {
         struct slob_rcu *slob_rcu = (struct slob_rcu *)head;
@@ -699,8 +668,8 @@ static void kmem_rcu_free(struct rcu_head *head)
 
         __kmem_cache_free(b, slob_rcu->size);
 }
-
-
+*/
+/*
 void kmem_cache_free(struct kmem_cache *c, void *b)
 {
         if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
@@ -714,14 +683,14 @@ void kmem_cache_free(struct kmem_cache *c, void *b)
         }
 }
 EXPORT_SYMBOL(kmem_cache_free);
-
-
+*/
+/*
 unsigned int kmem_cache_size(struct kmem_cache *c)
 {
         return c->size;
 }
 EXPORT_SYMBOL(kmem_cache_size);
-
+*/
 
 const char *kmem_cache_name(struct kmem_cache *c)
 {
