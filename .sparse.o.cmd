@@ -445,29 +445,10 @@ deps_mm/sparse.o := \
     $(wildcard include/config/failslab.h) \
     $(wildcard include/config/slub.h) \
     $(wildcard include/config/slob.h) \
+    $(wildcard include/config/best/fit/slob.h) \
     $(wildcard include/config/debug/slab.h) \
     $(wildcard include/config/slab.h) \
-  include/linux/slab_def.h \
-  include/trace/events/kmem.h \
-  include/linux/tracepoint.h \
-    $(wildcard include/config/tracepoints.h) \
-  include/linux/rcupdate.h \
-    $(wildcard include/config/rcu/torture/test.h) \
-    $(wildcard include/config/tree/rcu.h) \
-    $(wildcard include/config/tree/preempt/rcu.h) \
-    $(wildcard include/config/preempt/rcu.h) \
-    $(wildcard include/config/no/hz.h) \
-    $(wildcard include/config/tiny/rcu.h) \
-    $(wildcard include/config/tiny/preempt/rcu.h) \
-    $(wildcard include/config/debug/objects/rcu/head.h) \
-    $(wildcard include/config/preempt/rt.h) \
-  include/linux/rcutree.h \
-  include/linux/jump_label.h \
-    $(wildcard include/config/jump/label.h) \
-  include/trace/events/gfpflags.h \
-  include/trace/define_trace.h \
-    $(wildcard include/config/event/tracing.h) \
-  include/linux/kmalloc_sizes.h \
+  include/linux/slob_def.h \
   include/linux/bootmem.h \
     $(wildcard include/config/have/arch/bootmem/node.h) \
     $(wildcard include/config/have/arch/alloc/remap.h) \
@@ -496,6 +477,17 @@ deps_mm/sparse.o := \
   include/linux/kdev_t.h \
   include/linux/dcache.h \
   include/linux/rculist.h \
+  include/linux/rcupdate.h \
+    $(wildcard include/config/rcu/torture/test.h) \
+    $(wildcard include/config/tree/rcu.h) \
+    $(wildcard include/config/tree/preempt/rcu.h) \
+    $(wildcard include/config/preempt/rcu.h) \
+    $(wildcard include/config/no/hz.h) \
+    $(wildcard include/config/tiny/rcu.h) \
+    $(wildcard include/config/tiny/preempt/rcu.h) \
+    $(wildcard include/config/debug/objects/rcu/head.h) \
+    $(wildcard include/config/preempt/rt.h) \
+  include/linux/rcutree.h \
   include/linux/rculist_bl.h \
   include/linux/list_bl.h \
   include/linux/path.h \
@@ -565,6 +557,12 @@ deps_mm/sparse.o := \
   include/linux/timerqueue.h \
   include/linux/kref.h \
   include/trace/events/irq.h \
+  include/linux/tracepoint.h \
+    $(wildcard include/config/tracepoints.h) \
+  include/linux/jump_label.h \
+    $(wildcard include/config/jump/label.h) \
+  include/trace/define_trace.h \
+    $(wildcard include/config/event/tracing.h) \
   /home/drake/cs411-group14-p4/arch/x86/include/asm/tlbflush.h \
   include/linux/sched.h \
     $(wildcard include/config/sched/debug.h) \

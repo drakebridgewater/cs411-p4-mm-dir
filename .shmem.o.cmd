@@ -703,12 +703,10 @@ deps_mm/shmem.o := \
     $(wildcard include/config/failslab.h) \
     $(wildcard include/config/slub.h) \
     $(wildcard include/config/slob.h) \
+    $(wildcard include/config/best/fit/slob.h) \
     $(wildcard include/config/debug/slab.h) \
     $(wildcard include/config/slab.h) \
-  include/linux/slab_def.h \
-  include/trace/events/kmem.h \
-  include/trace/events/gfpflags.h \
-  include/linux/kmalloc_sizes.h \
+  include/linux/slob_def.h \
   include/linux/generic_acl.h \
   include/linux/mman.h \
   /home/drake/cs411-group14-p4/arch/x86/include/asm/mman.h \

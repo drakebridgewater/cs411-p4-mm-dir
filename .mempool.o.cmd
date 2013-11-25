@@ -444,12 +444,25 @@ deps_mm/mempool.o := \
     $(wildcard include/config/failslab.h) \
     $(wildcard include/config/slub.h) \
     $(wildcard include/config/slob.h) \
+    $(wildcard include/config/best/fit/slob.h) \
     $(wildcard include/config/debug/slab.h) \
     $(wildcard include/config/slab.h) \
-  include/linux/slab_def.h \
-  include/trace/events/kmem.h \
-  include/linux/tracepoint.h \
+  include/linux/slob_def.h \
+  include/linux/module.h \
+    $(wildcard include/config/symbol/prefix.h) \
+    $(wildcard include/config/sysfs.h) \
+    $(wildcard include/config/modversions.h) \
+    $(wildcard include/config/unused/symbols.h) \
+    $(wildcard include/config/kallsyms.h) \
     $(wildcard include/config/tracepoints.h) \
+    $(wildcard include/config/event/tracing.h) \
+    $(wildcard include/config/module/unload.h) \
+    $(wildcard include/config/constructors.h) \
+    $(wildcard include/config/debug/set/module/ronx.h) \
+  include/linux/stat.h \
+  /home/drake/cs411-group14-p4/arch/x86/include/asm/stat.h \
+  include/linux/kmod.h \
+  include/linux/sysctl.h \
   include/linux/rcupdate.h \
     $(wildcard include/config/rcu/torture/test.h) \
     $(wildcard include/config/tree/rcu.h) \
@@ -461,25 +474,6 @@ deps_mm/mempool.o := \
     $(wildcard include/config/debug/objects/rcu/head.h) \
     $(wildcard include/config/preempt/rt.h) \
   include/linux/rcutree.h \
-  include/linux/jump_label.h \
-    $(wildcard include/config/jump/label.h) \
-  include/trace/events/gfpflags.h \
-  include/trace/define_trace.h \
-    $(wildcard include/config/event/tracing.h) \
-  include/linux/kmalloc_sizes.h \
-  include/linux/module.h \
-    $(wildcard include/config/symbol/prefix.h) \
-    $(wildcard include/config/sysfs.h) \
-    $(wildcard include/config/modversions.h) \
-    $(wildcard include/config/unused/symbols.h) \
-    $(wildcard include/config/kallsyms.h) \
-    $(wildcard include/config/module/unload.h) \
-    $(wildcard include/config/constructors.h) \
-    $(wildcard include/config/debug/set/module/ronx.h) \
-  include/linux/stat.h \
-  /home/drake/cs411-group14-p4/arch/x86/include/asm/stat.h \
-  include/linux/kmod.h \
-  include/linux/sysctl.h \
   include/linux/elf.h \
   include/linux/elf-em.h \
   /home/drake/cs411-group14-p4/arch/x86/include/asm/elf.h \
@@ -495,6 +489,9 @@ deps_mm/mempool.o := \
   include/linux/moduleparam.h \
     $(wildcard include/config/alpha.h) \
     $(wildcard include/config/ppc64.h) \
+  include/linux/tracepoint.h \
+  include/linux/jump_label.h \
+    $(wildcard include/config/jump/label.h) \
   /home/drake/cs411-group14-p4/arch/x86/include/asm/module.h \
     $(wildcard include/config/m586.h) \
     $(wildcard include/config/m586tsc.h) \
@@ -520,6 +517,7 @@ deps_mm/mempool.o := \
     $(wildcard include/config/mgeode/lx.h) \
   include/asm-generic/module.h \
   include/trace/events/module.h \
+  include/trace/define_trace.h \
   include/linux/mempool.h \
   include/linux/blkdev.h \
     $(wildcard include/config/block.h) \

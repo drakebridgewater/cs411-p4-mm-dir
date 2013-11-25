@@ -705,12 +705,10 @@ deps_mm/highmem.o := \
     $(wildcard include/config/failslab.h) \
     $(wildcard include/config/slub.h) \
     $(wildcard include/config/slob.h) \
+    $(wildcard include/config/best/fit/slob.h) \
     $(wildcard include/config/debug/slab.h) \
     $(wildcard include/config/slab.h) \
-  include/linux/slab_def.h \
-  include/trace/events/kmem.h \
-  include/trace/events/gfpflags.h \
-  include/linux/kmalloc_sizes.h \
+  include/linux/slob_def.h \
   include/linux/device.h \
     $(wildcard include/config/debug/devres.h) \
     $(wildcard include/config/devtmpfs.h) \

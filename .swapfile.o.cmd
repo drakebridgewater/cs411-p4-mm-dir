@@ -503,18 +503,10 @@ deps_mm/swapfile.o := \
     $(wildcard include/config/failslab.h) \
     $(wildcard include/config/slub.h) \
     $(wildcard include/config/slob.h) \
+    $(wildcard include/config/best/fit/slob.h) \
     $(wildcard include/config/debug/slab.h) \
     $(wildcard include/config/slab.h) \
-  include/linux/slab_def.h \
-  include/trace/events/kmem.h \
-  include/linux/tracepoint.h \
-    $(wildcard include/config/tracepoints.h) \
-  include/linux/jump_label.h \
-    $(wildcard include/config/jump/label.h) \
-  include/trace/events/gfpflags.h \
-  include/trace/define_trace.h \
-    $(wildcard include/config/event/tracing.h) \
-  include/linux/kmalloc_sizes.h \
+  include/linux/slob_def.h \
   include/linux/pagemap.h \
   include/linux/highmem.h \
   include/linux/uaccess.h \
@@ -562,6 +554,12 @@ deps_mm/swapfile.o := \
   include/linux/timerqueue.h \
   include/linux/kref.h \
   include/trace/events/irq.h \
+  include/linux/tracepoint.h \
+    $(wildcard include/config/tracepoints.h) \
+  include/linux/jump_label.h \
+    $(wildcard include/config/jump/label.h) \
+  include/trace/define_trace.h \
+    $(wildcard include/config/event/tracing.h) \
   /home/drake/cs411-group14-p4/arch/x86/include/asm/tlbflush.h \
   include/linux/sched.h \
     $(wildcard include/config/sched/debug.h) \

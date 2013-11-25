@@ -704,12 +704,10 @@ deps_mm/vmscan.o := \
     $(wildcard include/config/failslab.h) \
     $(wildcard include/config/slub.h) \
     $(wildcard include/config/slob.h) \
+    $(wildcard include/config/best/fit/slob.h) \
     $(wildcard include/config/debug/slab.h) \
     $(wildcard include/config/slab.h) \
-  include/linux/slab_def.h \
-  include/trace/events/kmem.h \
-  include/trace/events/gfpflags.h \
-  include/linux/kmalloc_sizes.h \
+  include/linux/slob_def.h \
   include/linux/device.h \
     $(wildcard include/config/debug/devres.h) \
     $(wildcard include/config/devtmpfs.h) \
@@ -751,6 +749,7 @@ deps_mm/vmscan.o := \
   mm/internal.h \
     $(wildcard include/config/debug/memory/init.h) \
   include/trace/events/vmscan.h \
+  include/trace/events/gfpflags.h \
   include/trace/ftrace.h \
   include/linux/ftrace_event.h \
   include/linux/ring_buffer.h \
