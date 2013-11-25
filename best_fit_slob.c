@@ -212,13 +212,14 @@ static void *slob_new_page(gfp_t gfp, int order, int node)
  */
 static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
 {
-    slob_t *best, *bestprev, *bestaligned, *prev, *cur, *next, *aligned = 0;
-    int bestdelta, delta = 0, units = SLOB_UNITS(size);
-    slobidx_t bestavail = -1;
+    slob_t *best = NULL, *bestprev = NULL, *bestaligned = NULL;
+    slob_t *prev = NULL, *cur = NULL, *next = NULL, *aligned = NULL;
+    int bestdelta = 0, delta = 0, units = SLOB_UNITS(size);
+    slobidx_t avail = -1, bestavail = -1;
     int ffavail = -1, ffsize = -1;
 
     for (prev = NULL, cur = sp->free; ; prev = cur, cur = slob_next(cur)) {
-	slobidx_t avail = slob_units(cur);
+	avail = slob_units(cur);
 
 	if (align) {
 		aligned = (slob_t *)ALIGN((unsigned long)cur, align);
