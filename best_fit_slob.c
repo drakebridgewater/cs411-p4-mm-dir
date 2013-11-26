@@ -12,11 +12,17 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/mm.h>
+#include <linux/swap.h> /* struct reclaim_state */
 #include <linux/cache.h>
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/rcupdate.h>
 #include <linux/list.h>
+#include <linux/kmemleak.h> /*Kernel Memory Leak Detector*/
+#include <linux/syscalls.h>
+
+#include <trace/events/kmem.h>
+
 #include <asm/atomic.h>
 
 
@@ -206,7 +212,16 @@ static void *slob_new_page(gfp_t gfp, int order, int node)
 	return page_address(page);
 }
 
+static void slob_free_pages(void *b, int order)
+{
+	if (current->reclaim_state)
+		current->reclaim_state->reclaimed_slab += 1 << order;
+	free_pages((unsigned long)b, order);
+}
 
+static unsigned long counter = 0;
+
+static unsigned int page_counter = 0;
 /*
  * Allocate a slob block within a given slob_page sp.
  */
@@ -348,6 +363,8 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 
 	/* Not enough space: must allocate a new page */
 	if (!b) {
+		page_counter++;
+
 		b = slob_new_page(gfp & ~__GFP_ZERO, 0, node);
 		if (!b)
 			return NULL;
@@ -366,6 +383,7 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 	}
 	if (unlikely((gfp & __GFP_ZERO) && b))
 		memset(b, 0, size);
+	printk("(SLOB.C) slob_alloc -> time = %f\n", (clock() - time));
 	return b;
 }
 
@@ -392,10 +410,11 @@ static void slob_free(void *block, int size)
 		/* Go directly to page allocator. Do not pass slob allocator */
 		if (slob_page_free(sp))
 			clear_slob_page_free(sp);
+		spin_unlock_irqrestore(&slob_lock, flags);
 		clear_slob_page(sp);
 		free_slob_page(sp);
-		free_page((unsigned long)b);
-		goto out;
+		slob_free_pages(b, 0);
+		return;
 	}
 
 	if (!slob_page_free(sp)) {
@@ -449,15 +468,6 @@ out:
 /*
  * End of slob allocator proper. Begin kmem_cache_alloc and kmalloc frontend.
  */
-
-#ifndef ARCH_KMALLOC_MINALIGN
-#define ARCH_KMALLOC_MINALIGN __alignof__(unsigned long)
-#endif
-
-
-#ifndef ARCH_SLAB_MINALIGN
-#define ARCH_SLAB_MINALIGN __alignof__(unsigned long)
-#endif
 
 void *__kmalloc_node(size_t size, gfp_t gfp, int node)
 {
@@ -517,9 +527,11 @@ size_t ksize(const void *block)
 		return 0;
 
 	sp = slob_page(block);
-	if (is_slob_page(sp))
-		return ((slob_t *)block - 1)->units + SLOB_UNIT;
-	else
+	if (is_slob_page(sp)) {
+		int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
+		unsigned int *m = (unsigned int *)(block - align);
+		return sp->page.private;
+	} else
 		return sp->page.private;
 }
 EXPORT_SYMBOL(ksize);
@@ -563,6 +575,8 @@ EXPORT_SYMBOL(kmem_cache_create);
 
 void kmem_cache_destroy(struct kmem_cache *c)
 {
+	if (c->flags & SLAB_DESTROY_BY_RCU)
+		rcu_barrier();
 	slob_free(c, sizeof(struct kmem_cache));
 }
 EXPORT_SYMBOL(kmem_cache_destroy);
@@ -588,7 +602,7 @@ static void __kmem_cache_free(void *b, int size)
 	if (size < PAGE_SIZE)
 		slob_free(b, size);
 	else
-		free_pages((unsigned long)b, get_order(size));
+		slob_free_pages(b, get_order(size));
 }
 
 static void kmem_rcu_free(struct rcu_head *head)
@@ -618,24 +632,11 @@ unsigned int kmem_cache_size(struct kmem_cache *c)
 }
 EXPORT_SYMBOL(kmem_cache_size);
 
-// TODO need this? exports symbol at least
-const char *kmem_cache_name(struct kmem_cache *c)
-{
-	return c->name;
-}
-EXPORT_SYMBOL(kmem_cache_name);
-
 int kmem_cache_shrink(struct kmem_cache *d)
 {
 	return 0;
 }
 EXPORT_SYMBOL(kmem_cache_shrink);
-
-/* this never validates pointers? TODO verify this function
-int kmem_ptr_validate(struct kmem_cache *a, const void *b)
-{
-	return 0;
-}*/
 
 static unsigned int slob_ready __read_mostly;
 
