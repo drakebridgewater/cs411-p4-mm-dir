@@ -383,7 +383,6 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 	}
 	if (unlikely((gfp & __GFP_ZERO) && b))
 		memset(b, 0, size);
-	printk("(SLOB.C) slob_alloc -> time = %f\n", (clock() - time));
 	return b;
 }
 
@@ -396,6 +395,7 @@ static void slob_free(void *block, int size)
 	slob_t *prev, *next, *b = (slob_t *)block;
 	slobidx_t units;
 	unsigned long flags;
+	struct list_head *slob_list;
 
 	if (unlikely(ZERO_OR_NULL_PTR(block)))
 		return;
@@ -424,7 +424,13 @@ static void slob_free(void *block, int size)
 		set_slob(b, units,
 			(void *)((unsigned long)(b +
 					SLOB_UNITS(PAGE_SIZE)) & PAGE_MASK));
-		set_slob_page_free(sp, &free_slob_small);
+		if (size < SLOB_BREAK1)
+			slob_list = &free_slob_small;
+		else if (size < SLOB_BREAK2)
+			slob_list = &free_slob_medium;
+		else
+			slob_list = &free_slob_large;
+		set_slob_page_free(sp, slob_list);
 		goto out;
 	}
 
@@ -475,6 +481,7 @@ void *__kmalloc_node(size_t size, gfp_t gfp, int node)
 	int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
 	void *ret;
 
+	lockdep_trace_alloc(gfp);
 
 	if (size < PAGE_SIZE - align) {
 		if (!size)
@@ -485,16 +492,24 @@ void *__kmalloc_node(size_t size, gfp_t gfp, int node)
 			return NULL;
 		*m = size;
 		ret = (void *)m + align;
+
+		trace_kmalloc_node(_RET_IP_, ret,
+				   size, size + align, gfp, node);
 	} else {
-
-
-		ret = slob_new_page(gfp | __GFP_COMP, get_order(size), node);
+		unsigned int order = get_order(size);
+		if (likely(order))
+			gfp |= __GFP_COMP;
+		ret = slob_new_page(gfp, order, node);
 		if (ret) {
 			struct page *page;
 			page = virt_to_page(ret);
 			page->private = size;
 		}
+
+		trace_kmalloc_node(_RET_IP_, ret,
+				   size, PAGE_SIZE << order, gfp, node);
 	}
+	kmemleak_alloc(ret, size, 1, gfp);
 	return ret;
 }
 EXPORT_SYMBOL(__kmalloc_node);
@@ -503,9 +518,11 @@ void kfree(const void *block)
 {
 	struct slob_page *sp;
 
+	trace_kfree(_RET_IP_, block);
 
 	if (unlikely(ZERO_OR_NULL_PTR(block)))
 		return;
+	kmemleak_free(block);
 
 	sp = slob_page(block);
 	if (is_slob_page(sp)) {
@@ -530,7 +547,7 @@ size_t ksize(const void *block)
 	if (is_slob_page(sp)) {
 		int align = max(ARCH_KMALLOC_MINALIGN, ARCH_SLAB_MINALIGN);
 		unsigned int *m = (unsigned int *)(block - align);
-		return sp->page.private;
+		return SLOB_UNITS(*m) * SLOB_UNIT;
 	} else
 		return sp->page.private;
 }
@@ -549,7 +566,7 @@ struct kmem_cache *kmem_cache_create(const char *name, size_t size,
 	struct kmem_cache *c;
 
 	c = slob_alloc(sizeof(struct kmem_cache),
-		flags, ARCH_KMALLOC_MINALIGN, -1);
+		GFP_KERNEL, ARCH_KMALLOC_MINALIGN, -1);
 
 	if (c) {
 		c->name = name;
@@ -569,12 +586,14 @@ struct kmem_cache *kmem_cache_create(const char *name, size_t size,
 	} else if (flags & SLAB_PANIC)
 		panic("Cannot create slab cache %s\n", name);
 
+	kmemleak_alloc(c, sizeof(struct kmem_cache), 1, GFP_KERNEL);
 	return c;
 }
 EXPORT_SYMBOL(kmem_cache_create);
 
 void kmem_cache_destroy(struct kmem_cache *c)
 {
+	kmemleak_free(c);
 	if (c->flags & SLAB_DESTROY_BY_RCU)
 		rcu_barrier();
 	slob_free(c, sizeof(struct kmem_cache));
@@ -585,14 +604,22 @@ void *kmem_cache_alloc_node(struct kmem_cache *c, gfp_t flags, int node)
 {
 	void *b;
 
-	if (c->size < PAGE_SIZE)
+	if (c->size < PAGE_SIZE) {
 		b = slob_alloc(c->size, flags, c->align, node);
-	else
+		trace_kmem_cache_alloc_node(_RET_IP_, b, c->size,
+					SLOB_UNITS(c->size) * SLOB_UNIT,
+					flags, node);
+	} else {
 		b = slob_new_page(flags, get_order(c->size), node);
+		trace_kmem_cache_alloc_node(_RET_IP_, b, c->size,
+					PAGE_SIZE << get_order(c->size),
+					flags, node);
+	}
 
 	if (c->ctor)
 		c->ctor(b);
 
+	kmemleak_alloc_recursive(b, c->size, 1, c->flags, flags);
 	return b;
 }
 EXPORT_SYMBOL(kmem_cache_alloc_node);
@@ -615,6 +642,7 @@ static void kmem_rcu_free(struct rcu_head *head)
 
 void kmem_cache_free(struct kmem_cache *c, void *b)
 {
+	kmemleak_free_recursive(b, c->flags);
 	if (unlikely(c->flags & SLAB_DESTROY_BY_RCU)) {
 		struct slob_rcu *slob_rcu;
 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
@@ -623,6 +651,7 @@ void kmem_cache_free(struct kmem_cache *c, void *b)
 	} else {
 		__kmem_cache_free(b, c->size);
 	}
+	trace_kmem_cache_free(_RET_IP_, b);
 }
 EXPORT_SYMBOL(kmem_cache_free);
 
