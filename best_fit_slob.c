@@ -248,7 +248,7 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
 			bestaligned = aligned;
 			bestdelta = delta;
 			bestavail = avail;
-			printk("[SLOB.C] BETTER FIT FOUND");
+			//printk("[SLOB.C] BETTER FIT FOUND");
 
 		} else if (bestavail == -1) {			/* First Fit */
 			best = cur;
@@ -258,18 +258,18 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
 			bestavail = avail;
 			ffavail = avail;
 			ffsize = units+delta;
-			printk("[SLOB.C] FIRST FIT FOUND");
-			printk("[SLOB.C] FIRST FIT AVAIL: %d, SIZE: %d",ffavail,ffsize);
-			printk("[SLOB.C] FIRST FIT AREA UNUSED: %d",ffavail - ffsize);
+			//printk("[SLOB.C] FIRST FIT FOUND");
+			//printk("[SLOB.C] FIRST FIT AVAIL: %d, SIZE: %d",ffavail,ffsize);
+			//printk("[SLOB.C] FIRST FIT AREA UNUSED: %d",ffavail - ffsize);
 		}
 	}
 
 	if (slob_last(cur)){ /* End of Loop */
 	    if (bestavail == -1){ 
-		printk("[SLOB.C] NO OPEN SPACE FOUND ON PAGE");
+		//printk("[SLOB.C] NO OPEN SPACE FOUND ON PAGE");
 		return NULL;
 	    }else {
-		printk("[SLOB.C] END OF SEARCHING FOR SPACE ON PAGE");
+		//printk("[SLOB.C] END OF SEARCHING FOR SPACE ON PAGE");
 		break;
 	    }
 	}
@@ -280,8 +280,8 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
     aligned = bestaligned;
     delta = bestdelta;
     avail = bestavail;
-    printk("[SLOB.C] BEST FIT AVAIL: %d, SIZE %d",avail, units + delta);
-    printk("[SLOB.C] BEST FIT AREA UNUSED: %d ",avail - units -delta);
+    //printk("[SLOB.C] BEST FIT AVAIL: %d, SIZE %d",avail, units + delta);
+    //printk("[SLOB.C] BEST FIT AREA UNUSED: %d ",avail - units -delta);
     /*  ALLOC of MEMORY that was previously used */
     if (delta) { /* need to fragment head to align? */
 	next = slob_next(cur);
